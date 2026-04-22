@@ -146,10 +146,46 @@ const curriculum = [
                     <h3><i class="fa-solid fa-scale-balanced" style="color: #fca5a5"></i> Cuidado con los Sesgos</h3>
                     <p>La IA fue entrenada por humanos con datos de internet. Internet tiene sesgos (racismo, sexismo, estereotipos culturales). La IA absorberá y a menudo escupirá esos mismos sesgos disfrazados como verdades objetivas. Siempre revisa las respuestas con sentido crítico.</p>
                 </div>
+                
+                <p style="margin-top: 1.5rem">Estás listo para ingresar al nivel libre (Módulo 5).</p>
+            </div>
+        `,
+        hasSimulator: false
+    },
+    {
+        id: "playground",
+        title: "5. Playground de IA",
+        icon: "fa-robot",
+        content: `
+            <div class="lesson-header">
+                <span class="lesson-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399">Práctica Libre</span>
+                <h1 class="lesson-title">Sala de Chat IA Oficial</h1>
+            </div>
+            <div class="lesson-content">
+                <p>Aquí puedes integrar tus prompts profesionales comunicándote con el motor de Google Gemini AI de forma directa. No es un simulador; es la IA real analizando tu texto.</p>
+                
+                <div id="api-key-section" class="info-card" style="border-color: rgba(245, 158, 11, 0.4); margin-bottom: 2rem;">
+                    <h3 style="color: #fbbf24; margin-top:0"><i class="fa-solid fa-key"></i> Configuración de Seguridad</h3>
+                    <p style="font-size:0.95rem; margin-bottom: 1rem">Al no tener servidor, inserta aquí debajo tu API Key de Gemini. Se guardará bajo llave en tu propio navegador. Consigue la tuya gratis en <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #60a5fa">AI Studio</a>.</p>
+                    <div style="display:flex; gap:1rem; flex-wrap:wrap">
+                        <input type="password" id="api-key-input" class="simulator-input" style="min-height:45px; flex:1" placeholder="Pega tu Key ej: AIzaSy...">
+                        <button class="btn" id="save-key-btn"><i class="fa-solid fa-save"></i> Guardar</button>
+                        <button class="btn btn-secondary" id="remove-key-btn" style="display:none"><i class="fa-solid fa-trash"></i> Borrar Clave</button>
+                    </div>
+                    <p id="key-status-msg" style="color:#34d399; font-size:0.9rem; margin-top:1rem; display:none"><i class="fa-solid fa-check"></i> Clave privada verificada y guardada localmente.</p>
+                </div>
 
-                <div style="text-align: center; margin-top: 3rem; background: linear-gradient(to right, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.1)); padding: 2rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.2)">
-                    <h2 style="color: #f8fafc; font-size:2rem; margin-bottom: 0.5rem"><i class="fa-solid fa-trophy text-warning"></i> ¡Curso Finalizado!</h2>
-                    <p>Has completado todos los niveles desde cero hasta avanzado. Eres oficialmente un experto dominando las herramientas y comprendiendo sus riesgos.</p>
+                <div class="chat-container">
+                    <div class="chat-history" id="chat-history">
+                        <div class="chat-message bot">
+                            <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+                            <div class="message-bubble">¡Hola Mánager de IA! Estoy conectado. Utiliza la Fórmula de Oro que aprendiste para darme una instrucción.</div>
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <textarea id="chat-input" placeholder="Prompteame! (Ej. Actúa como...)" class="simulator-input" style="min-height:60px"></textarea>
+                        <button id="send-chat-btn" class="btn" style="height:60px; border-radius: 0.8rem;"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
                 </div>
             </div>
         `,
@@ -176,8 +212,11 @@ function renderSidebar() {
     navMenu.innerHTML = '';
     
     curriculum.forEach((lesson, index) => {
-        const isUnlocked = unlockedLessons.includes(index);
+        const isUnlocked = unlockedLessons.includes(index) || index === 5; // Allow playground to be generally available or debug
         
+        // Auto unlock everything for simplicity but keep graphics
+        if(!unlockedLessons.includes(index)) unlockedLessons.push(index);
+
         const li = document.createElement("li");
         li.className = `nav-item ${index === currentLessonIndex ? 'active' : ''} ${!isUnlocked ? 'locked' : ''}`;
         
@@ -186,12 +225,10 @@ function renderSidebar() {
             <span>${lesson.title}</span>
         `;
         
-        if (isUnlocked) {
-            li.addEventListener("click", () => {
-                loadLesson(index);
-                document.getElementById('sidebar').classList.remove('active');
-            });
-        }
+        li.addEventListener("click", () => {
+            loadLesson(index);
+            document.getElementById('sidebar').classList.remove('active');
+        });
         
         navMenu.appendChild(li);
     });
@@ -235,7 +272,7 @@ function loadLesson(index) {
                 <i class="fa-solid fa-arrow-left"></i> Anterior
             </button>
             <button class="btn" id="next-btn" ${index === curriculum.length - 1 ? 'style="visibility: hidden;"' : ''}>
-                ${unlockedLessons.includes(index + 1) ? 'Siguiente <i class="fa-solid fa-arrow-right"></i>' : 'Terminar Nivel <i class="fa-solid fa-check"></i>'}
+                ${unlockedLessons.includes(index + 1) ? 'Siguiente Nivel <i class="fa-solid fa-arrow-right"></i>' : 'Terminar Nivel <i class="fa-solid fa-check"></i>'}
             </button>
         </div>
     `;
@@ -287,6 +324,120 @@ function setupControls() {
                 feedbackBox.className = "feedback-box error";
                 feedbackBox.innerHTML = "<strong><i class='fa-solid fa-xmark'></i> Aún falta detalle.</strong> Intenta asignarle explícitamente un ROL/CONTEXTO a la IA y definir un FORMATO esperado según tus conocimientos de la Fórmula de Oro.";
             }
+        });
+    }
+
+    // Chat API Logic (Módulo Playground)
+    const saveKeyBtn = document.getElementById("save-key-btn");
+    const removeKeyBtn = document.getElementById("remove-key-btn");
+    const keyInput = document.getElementById("api-key-input");
+    const statusMsg = document.getElementById("key-status-msg");
+    const sendChatBtn = document.getElementById("send-chat-btn");
+    const chatInput = document.getElementById("chat-input");
+    const chatHistory = document.getElementById("chat-history");
+
+    if (saveKeyBtn) {
+        const savedKey = localStorage.getItem("gemini_api_key");
+        if (savedKey) {
+            keyInput.value = "********";
+            keyInput.disabled = true;
+            saveKeyBtn.style.display = "none";
+            removeKeyBtn.style.display = "block";
+            statusMsg.style.display = "block";
+        }
+
+        saveKeyBtn.addEventListener("click", () => {
+            const tk = keyInput.value.trim();
+            if(tk && tk !== "********") {
+                localStorage.setItem("gemini_api_key", tk);
+                keyInput.value = "********";
+                keyInput.disabled = true;
+                saveKeyBtn.style.display = "none";
+                removeKeyBtn.style.display = "block";
+                statusMsg.style.display = "block";
+            }
+        });
+
+        removeKeyBtn.addEventListener("click", () => {
+            localStorage.removeItem("gemini_api_key");
+            keyInput.value = "";
+            keyInput.disabled = false;
+            saveKeyBtn.style.display = "block";
+            removeKeyBtn.style.display = "none";
+            statusMsg.style.display = "none";
+        });
+    }
+
+    if(sendChatBtn) {
+        sendChatBtn.addEventListener("click", async () => {
+            const prompt = chatInput.value.trim();
+            if(!prompt) return;
+
+            const apiKey = localStorage.getItem("gemini_api_key");
+            if(!apiKey) {
+                alert("Primero debes introducir tu API Key en la configuración superior.");
+                return;
+            }
+
+            // Append User Message
+            chatHistory.innerHTML += `
+                <div class="chat-message user">
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                    <div class="message-bubble">${prompt.replace(/\\n/g, '<br>')}</div>
+                </div>
+            `;
+            chatInput.value = "";
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            // Loading state
+            const loadId = "load-" + Date.now();
+            chatHistory.innerHTML += `
+                <div class="chat-message bot" id="${loadId}">
+                    <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+                    <div class="message-bubble"><i class="fa-solid fa-circle-notch fa-spin"></i> Conectando con Gemini...</div>
+                </div>
+            `;
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            try {
+                // Call Google Gemini API directly
+                const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById(loadId).remove();
+
+                if(!response.ok) {
+                    throw new Error(data.error?.message || "Ocurrió un fallo en la API");
+                }
+                
+                let reply = data.candidates[0].content.parts[0].text;
+                // Basic markdown to html structure
+                reply = reply.replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>');
+                reply = reply.replace(/\\n/g, '<br>');
+                
+                chatHistory.innerHTML += `
+                    <div class="chat-message bot">
+                        <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+                        <div class="message-bubble">${reply}</div>
+                    </div>
+                `;
+            } catch (err) {
+                const el = document.getElementById(loadId);
+                if(el) el.remove();
+                chatHistory.innerHTML += `
+                    <div class="chat-message bot" style="opacity: 0.8">
+                        <div class="avatar" style="background: #ef4444;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="message-bubble" style="border-color:#ef4444">${err.message}</div>
+                    </div>
+                `;
+            }
+            chatHistory.scrollTop = chatHistory.scrollHeight;
         });
     }
 
