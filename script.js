@@ -179,12 +179,12 @@ function renderSidebar() {
         const isUnlocked = unlockedLessons.includes(index);
         
         const li = document.createElement("li");
-        li.className = \`nav-item \${index === currentLessonIndex ? 'active' : ''} \${!isUnlocked ? 'locked' : ''}\`;
+        li.className = `nav-item ${index === currentLessonIndex ? 'active' : ''} ${!isUnlocked ? 'locked' : ''}`;
         
-        li.innerHTML = \`
-            <i class="fa-solid \${isUnlocked ? lesson.icon : 'fa-lock'}"></i>
-            <span>\${lesson.title}</span>
-        \`;
+        li.innerHTML = `
+            <i class="fa-solid ${isUnlocked ? lesson.icon : 'fa-lock'}"></i>
+            <span>${lesson.title}</span>
+        `;
         
         if (isUnlocked) {
             li.addEventListener("click", () => {
@@ -204,15 +204,15 @@ function loadLesson(index) {
     
     // Update progress
     const progressPercent = Math.round((currentLessonIndex / (curriculum.length - 1)) * 100);
-    document.getElementById("progress-fill").style.width = \`\${progressPercent}%\`;
-    document.getElementById("progress-text").innerText = \`Progreso: \${progressPercent}%\`;
+    document.getElementById("progress-fill").style.width = `${progressPercent}%`;
+    document.getElementById("progress-text").innerText = `Progreso: ${progressPercent}%`;
 
     // Render HTML content
     let html = lesson.content;
 
     // Inject Simulator if needed
     if(lesson.hasSimulator) {
-        html += \`
+        html += `
             <div class="info-card simulator-area" style="border-color: rgba(139, 92, 246, 0.4)">
                 <h3 style="margin-top: 0"><i class="fa-solid fa-code"></i> Tu Turno: Máster Simulador</h3>
                 <p style="margin-bottom: 1rem;">Escribe un prompt pidiéndole a la IA que te ayude a crear una <strong>rutina de ejercicios de 15 minutos</strong> en casa. ¡Usa todo lo que aprendiste! Busca definir un rol, formato y tarea.</p>
@@ -225,22 +225,22 @@ function loadLesson(index) {
                 
                 <div id="feedback-box" class="feedback-box"></div>
             </div>
-        \`;
+        `;
     }
 
     // Inject Footer Navigation
-    html += \`
+    html += `
         <div class="lesson-footer">
-            <button class="btn btn-secondary" id="prev-btn" \${index === 0 ? 'style="visibility: hidden;"' : ''}>
+            <button class="btn btn-secondary" id="prev-btn" ${index === 0 ? 'style="visibility: hidden;"' : ''}>
                 <i class="fa-solid fa-arrow-left"></i> Anterior
             </button>
-            <button class="btn" id="next-btn" \${index === curriculum.length - 1 ? 'style="visibility: hidden;"' : ''}>
-                \${unlockedLessons.includes(index + 1) ? 'Siguiente <i class="fa-solid fa-arrow-right"></i>' : 'Terminar Nivel <i class="fa-solid fa-check"></i>'}
+            <button class="btn" id="next-btn" ${index === curriculum.length - 1 ? 'style="visibility: hidden;"' : ''}>
+                ${unlockedLessons.includes(index + 1) ? 'Siguiente <i class="fa-solid fa-arrow-right"></i>' : 'Terminar Nivel <i class="fa-solid fa-check"></i>'}
             </button>
         </div>
-    \`;
+    `;
 
-    contentArea.innerHTML = \`<div class="lesson-container">\${html}</div>\`;
+    contentArea.innerHTML = `<div class="lesson-container">${html}</div>`;
     contentArea.scrollTop = 0;
 
     // Setup event listeners
