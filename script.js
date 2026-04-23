@@ -541,26 +541,52 @@ function setupControls() {
             chatHistory.scrollTop = chatHistory.scrollHeight;
 
             try {
-                // Call Google Gemini API directly
-                const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }]
-                    })
-                });
+                const fallbackModels = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-3.1-flash", "gemini-2.0-flash"];
+                let data = null;
+                let lastErrorMsg = "";
+                let successfulModel = "";
 
-                const data = await response.json();
+                // Attempt fetching until one model succeeds
+                for (const model of fallbackModels) {
+                    try {
+                        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: prompt }] }]
+                            })
+                        });
+                        const resData = await res.json();
+                        
+                        if (!res.ok) {
+                            throw new Error(resData.error?.message || "Error desconocido en " + model);
+                        }
+                        
+                        // If successful, save data and break the loop
+                        data = resData;
+                        successfulModel = model;
+                        break; 
+                    } catch (e) {
+                        console.warn(`Falló el modelo ${model}:`, e.message);
+                        lastErrorMsg = e.message;
+                    }
+                }
+
                 document.getElementById(loadId).remove();
 
-                if (!response.ok) {
-                    throw new Error(data.error?.message || "Ocurrió un fallo en la API");
+                if (!data) {
+                    throw new Error("Alta demanda global. Todos los modelos de reserva fallaron. Último error: " + lastErrorMsg);
                 }
 
                 let reply = data.candidates[0].content.parts[0].text;
                 // Basic markdown to html structure
                 reply = reply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                 reply = reply.replace(/\n/g, '<br>');
+                
+                // Add a note if a fallback model was used
+                if (successfulModel !== fallbackModels[0]) {
+                    reply += `<br><br><small style="color:#f59e0b; font-size: 0.85em;"><i class="fa-solid fa-bolt"></i> <em>Nota: Tu modelo principal estaba lleno. La IA te respondió usando un modelo auxiliar ('${successfulModel}').</em></small>`;
+                }
 
                 chatHistory.innerHTML += `
                     <div class="chat-message bot">
